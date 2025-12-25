@@ -43,7 +43,7 @@ const inviteCodeSchema = new mongoose.Schema({
     timestamps: true
 });
 
-inviteCodeSchema.index({ code: 1 });
+// Index for code lookup (Removed duplicate index)
 inviteCodeSchema.index({ createdBy: 1 });
 
 // Check if code is valid (not used and not expired)
