@@ -1,0 +1,31 @@
+Connected to DB
+
+--- USERS ---
+69463dec07d8f9d094122557 | afroz24shaik@gmail.com | Role: admin | Name: Admin
+6946d3e34e91e5c1c8b840ce | test1766249443619@example.com | Role: user | Name: Tester
+6946d4c75769e9acc94e8206 | test1766249671617@example.com | Role: user | Name: Tester
+6946d6a165d4646b31ec9464 | repro1766250145258@example.com | Role: user | Name: Repro User
+6946d6b565d4646b31ec946f | repro1766250164969@example.com | Role: user | Name: Repro User
+6946d6df65d4646b31ec947a | repro1766250207533@example.com | Role: user | Name: Repro User
+6946d70d425510f0c020e170 | repro1766250253076@example.com | Role: user | Name: Repro User
+6946d7567eaad0b90b117f6d | repro1766250326701@example.com | Role: user | Name: Repro User
+6946d7836c76b286e9ecb7db | repro1766250371068@example.com | Role: user | Name: Repro User
+6946d7a053dc42f52b63b792 | repro1766250400837@example.com | Role: user | Name: Repro User
+6946d7e353dc42f52b63b79d | repro1766250467822@example.com | Role: user | Name: Repro User
+6946d82c53dc42f52b63b7a8 | repro1766250540157@example.com | Role: user | Name: Repro User
+6946d85953dc42f52b63b7b3 | repro1766250585904@example.com | Role: user | Name: Repro User
+6946d86e1e5e91a7e150e310 | repro1766250606212@example.com | Role: user | Name: Repro User
+6946d8a2d2fa551afbede351 | repro1766250658874@example.com | Role: user | Name: Repro User
+6946d8f06d013551d9e6d6d4 | repro1766250736581@example.com | Role: user | Name: Repro User
+6946d9226c9eefe1c73b5d5d | repro1766250786033@example.com | Role: user | Name: Repro User
+6946d944b81a31f7bd45ac25 | repro1766250820539@example.com | Role: user | Name: Repro User
+69476b4ad2da38af6712f25c | test@example.com | Role: user | Name: Test User
+69476c56d2da38af6712f260 | testfix@example.com | Role: user | Name: Test User Fix
+6947fcc7bf994ff437e34bbf | member@gmail.com | Role: user | Name: member
+6948047a31a609cf71decf7b | test@test.com | Role: user | Name: Test User
+694808ba31a609cf71dedbee | test@gmail.com | Role: user | Name: test
+
+--- PLAYLISTS ---
+6947fd13bf994ff437e34c1e | fav | Owner: 6947fcc7bf994ff437e34bbf (member)
+6947fd6fbf994ff437e34c54 | hindi | Owner: 6947fcc7bf994ff437e34bbf (member)
+6948d178f651e53c02c9fd59 | fav | Owner: 694808ba31a609cf71dedbee (test)

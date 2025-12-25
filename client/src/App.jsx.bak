@@ -1,0 +1,93 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import { AudioProvider } from './context/AudioContext';
+import { Layout } from './components/layout';
+import {
+    Login,
+    Home,
+    Album,
+    Artist,
+    Search,
+    Upload,
+    Library,
+    Settings
+} from './pages';
+import { LoadingPage } from './components/common';
+
+// Protected Route wrapper
+function ProtectedRoute({ children }) {
+    const { isAuthenticated, loading } = useAuth();
+
+    if (loading) {
+        return <LoadingPage />;
+    }
+
+    if (!isAuthenticated) {
+        return <Navigate to="/login" replace />;
+    }
+
+    return children;
+}
+
+// Public Route wrapper (redirects if already logged in)
+function PublicRoute({ children }) {
+    const { isAuthenticated, loading } = useAuth();
+
+    if (loading) {
+        return <LoadingPage />;
+    }
+
+    if (isAuthenticated) {
+        return <Navigate to="/" replace />;
+    }
+
+    return children;
+}
+
+function AppRoutes() {
+    return (
+        <Routes>
+            {/* Public Routes */}
+            <Route
+                path="/login"
+                element={
+                    <PublicRoute>
+                        <Login />
+                    </PublicRoute>
+                }
+            />
+
+            {/* Protected Routes */}
+            <Route
+                element={
+                    <ProtectedRoute>
+                        <Layout />
+                    </ProtectedRoute>
+                }
+            >
+                <Route path="/" element={<Home />} />
+                <Route path="/album/:id" element={<Album />} />
+                <Route path="/artist/:id" element={<Artist />} />
+                <Route path="/search" element={<Search />} />
+                <Route path="/upload" element={<Upload />} />
+                <Route path="/library" element={<Library />} />
+                <Route path="/settings" element={<Settings />} />
+            </Route>
+
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+    );
+}
+
+export default function App() {
+    return (
+        <BrowserRouter>
+            <AuthProvider>
+                <AudioProvider>
+                    <AppRoutes />
+                </AudioProvider>
+            </AuthProvider>
+        </BrowserRouter>
+    );
+}

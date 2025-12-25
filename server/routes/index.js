@@ -1,0 +1,10 @@
+export { default as authRoutes } from './auth.js';
+export { default as adminRoutes } from './admin.js';
+export { default as artistRoutes } from './artists.js';
+export { default as albumRoutes } from './albums.js';
+export { default as songRoutes } from './songs.js';
+export { default as playlistRoutes } from './playlists.js';
+export { default as streamRoutes } from './stream.js';
+export { default as uploadRoutes } from './upload.js';
+export { default as searchRoutes } from './search.js';
+export { default as mediaRoutes } from './media.js';
