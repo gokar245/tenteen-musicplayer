@@ -176,7 +176,10 @@ class CloudinaryStorage {
 // Storage factory - easy to swap providers later
 class StorageService {
     constructor() {
-        const storageType = process.env.STORAGE_TYPE || 'local';
+        const storageType = process.env.STORAGE_TYPE ? process.env.STORAGE_TYPE.trim() : 'local';
+        console.log('DEBUG: Raw STORAGE_TYPE:', process.env.STORAGE_TYPE);
+        console.log('DEBUG: storageType used:', storageType);
+        console.log('DEBUG: CWD:', process.cwd());
 
         switch (storageType) {
             case 'cloudinary':
