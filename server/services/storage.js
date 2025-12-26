@@ -23,14 +23,26 @@ class LocalStorage {
     }
 
     async saveAudio(file, filename) {
-        const filePath = path.join(this.audioDir, filename);
-        await fs.promises.writeFile(filePath, file.buffer);
-        return { filename, storagePath: filePath, storageType: 'local' };
+        if (file.path) {
+            // If file is on disk (from diskStorage)
+            const filePath = path.join(this.audioDir, filename);
+            await fs.promises.copyFile(file.path, filePath);
+            return { filename, storagePath: filePath, storageType: 'local' };
+        } else {
+            // Buffer fallback
+            const filePath = path.join(this.audioDir, filename);
+            await fs.promises.writeFile(filePath, file.buffer);
+            return { filename, storagePath: filePath, storageType: 'local' };
+        }
     }
 
     async saveImage(file, filename) {
         const filePath = path.join(this.imagesDir, filename);
-        await fs.promises.writeFile(filePath, file.buffer);
+        if (file.path) {
+            await fs.promises.copyFile(file.path, filePath);
+        } else {
+            await fs.promises.writeFile(filePath, file.buffer);
+        }
         return { url: `/uploads/images/${filename}`, storageType: 'local' };
     }
 
@@ -81,7 +93,15 @@ class CloudinaryStorage {
         try {
             // Generate public ID from filename (without extension)
             const publicId = filename.replace(/\.[^/.]+$/, '');
-            const result = await cloudinaryService.uploadAudioStream(file.buffer, publicId);
+            let result;
+
+            if (file.path) {
+                // Upload from disk path
+                result = await cloudinaryService.uploadAudioFile(file.path, publicId);
+            } else {
+                // Upload from buffer
+                result = await cloudinaryService.uploadAudioStream(file.buffer, publicId);
+            }
 
             return {
                 cloudinary: {
@@ -106,7 +126,16 @@ class CloudinaryStorage {
 
         try {
             const publicId = filename.replace(/\.[^/.]+$/, '');
-            const result = await cloudinaryService.uploadImage(file.buffer, publicId, folder);
+            let result;
+
+            if (file.path) {
+                // Convert file path to buffer for specific image upload if needed
+                // Or update cloudinary service to support path for images (it does handle paths usually)
+                // But uploadImage in cloudinary.js handles paths directly if string
+                result = await cloudinaryService.uploadImage(file.path, publicId, folder);
+            } else {
+                result = await cloudinaryService.uploadImage(file.buffer, publicId, folder);
+            }
 
             return {
                 cloudinary: {
