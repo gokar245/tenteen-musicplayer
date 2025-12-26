@@ -18,10 +18,10 @@ async function uploadAudioStream(fileBuffer, publicId) {
     return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
             {
-                resource_type: 'raw',
+                resource_type: 'video',
                 public_id: publicId,
                 overwrite: true,
-                folder: 'tenteen/raw/songs'
+                folder: 'tenteen/audio/songs'
             },
             (error, result) => {
                 if (error) reject(error);
@@ -46,9 +46,9 @@ async function uploadAudioStream(fileBuffer, publicId) {
  */
 async function uploadAudioFile(filePath, publicId) {
     return cloudinary.uploader.upload(filePath, {
-        resource_type: 'raw',
+        resource_type: 'video',
         public_id: publicId,
-        folder: 'tenteen/raw/songs'
+        folder: 'tenteen/audio/songs'
     });
 }
 
@@ -86,7 +86,7 @@ async function uploadImage(pathOrBuffer, publicId, folder = 'general') {
  * @param {string} resourceType - 'raw' for audio, 'image' for images
  * @returns {Promise} Cloudinary destroy result
  */
-async function deleteResource(publicId, resourceType = 'raw') {
+async function deleteResource(publicId, resourceType = 'video') {
     return cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
 }
 
@@ -97,12 +97,12 @@ async function deleteResource(publicId, resourceType = 'raw') {
  * @param {number} expiresInSeconds - URL validity duration
  * @returns {string} Signed URL
  */
-function generateSignedUrl(publicId, resourceType = 'raw', expiresInSeconds = 3600) {
+function generateSignedUrl(publicId, resourceType = 'video', expiresInSeconds = 3600) {
     const timestamp = Math.floor(Date.now() / 1000) + expiresInSeconds;
 
-    if (resourceType === 'raw') {
+    if (resourceType === 'video') {
         return cloudinary.url(publicId, {
-            resource_type: 'raw',
+            resource_type: 'video',
             sign_url: true,
             type: 'authenticated',
             expires_at: timestamp
@@ -122,7 +122,7 @@ function generateSignedUrl(publicId, resourceType = 'raw', expiresInSeconds = 36
  * @param {string} resourceType - 'raw' or 'image'
  * @returns {Promise} Resource details
  */
-async function getResourceInfo(publicId, resourceType = 'raw') {
+async function getResourceInfo(publicId, resourceType = 'video') {
     return cloudinary.api.resource(publicId, { resource_type: resourceType });
 }
 

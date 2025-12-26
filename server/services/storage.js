@@ -164,7 +164,7 @@ class CloudinaryStorage {
         if (this.fallback) return this.fallback.deleteAudio(publicIdOrFilename);
 
         try {
-            await cloudinaryService.deleteResource(publicIdOrFilename, 'raw');
+            await cloudinaryService.deleteResource(publicIdOrFilename, 'video');
         } catch (error) {
             console.error('Failed to delete from Cloudinary:', error);
         }
@@ -184,7 +184,7 @@ class CloudinaryStorage {
         if (this.fallback) return this.fallback.getAudioStats(publicId);
 
         try {
-            return await cloudinaryService.getResourceInfo(publicId, 'raw');
+            return await cloudinaryService.getResourceInfo(publicId, 'video');
         } catch (error) {
             console.error('Failed to get resource info:', error);
             throw error;
@@ -198,7 +198,7 @@ class CloudinaryStorage {
     }
 
     getSignedUrl(publicId, expiresInSeconds = 3600) {
-        return cloudinaryService.generateSignedUrl(publicId, 'raw', expiresInSeconds);
+        return cloudinaryService.generateSignedUrl(publicId, 'video', expiresInSeconds);
     }
 }
 
