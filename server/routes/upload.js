@@ -85,21 +85,23 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
 
         const { artistId, albumId, title, language, tags } = req.body;
 
-        // 2. Duplicate Detection
-        // For disk files, reading the whole file to hash might be expensive if very large, but safer than buffer
-        // However, uniqueness should arguably be on title/artist or just skipped.
-        // For now, let's skip hash check if using disk storage to save time/resources on Vercel
-        // OR read stream to hash.
-        let hash = 'legacy-no-hash';
+        // 2. Duplicate Detection - Generate unique hash for all uploads
+        let hash;
         if (audioFile.buffer) {
             hash = crypto.createHash('sha256').update(audioFile.buffer).digest('hex');
-            const duplicate = await Song.findOne({ hash });
-            if (duplicate) {
-                return res.status(409).json({ message: 'Duplicate song detected', songId: duplicate._id });
-            }
         } else if (audioFile.path) {
-            // Optional: implement stream hashing if strict duplicate check needed
-            // For Vercel performance compliance, skipping strict binary hash check for now
+            // For disk-based uploads, read file and compute hash
+            const fileBuffer = await fs.promises.readFile(audioFile.path);
+            hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+        } else {
+            // Fallback: Generate unique hash using UUID if file data unavailable
+            hash = crypto.createHash('sha256').update(uuidv4() + Date.now()).digest('hex');
+        }
+
+        // Check for duplicates
+        const duplicate = await Song.findOne({ hash });
+        if (duplicate) {
+            return res.status(409).json({ message: 'Duplicate song detected', songId: duplicate._id });
         }
 
         // 3. Get admin settings to determine status

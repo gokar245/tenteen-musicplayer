@@ -45,6 +45,8 @@ const CreateArtistView = ({ onBack, onSuccess }) => {
 
     const handleSave = async (e) => {
         e.preventDefault();
+        // Prevent multiple submissions
+        if (loading) return;
         setLoading(true);
         try {
             // 1. Upload Image
@@ -177,6 +179,8 @@ const CreateAlbumView = ({ artist, onBack, onSuccess }) => {
 
     const handleSave = async (e) => {
         e.preventDefault();
+        // Prevent multiple submissions
+        if (loading) return;
         setLoading(true);
         try {
             const formData = new FormData();
@@ -335,6 +339,8 @@ export default function Upload() {
     };
 
     const handleFinalUpload = async () => {
+        // Prevent multiple submissions
+        if (loading) return;
         setLoading(true);
         try {
             const formData = new FormData();
