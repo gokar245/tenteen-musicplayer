@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
 
     const fetchUser = async () => {
         try {
-            const response = await api.get('/api/auth/me');
+            const response = await api.get('/auth/me');
             setUser(response.data);
         } catch (error) {
             console.error('Failed to fetch user:', error);
@@ -29,7 +29,7 @@ export function AuthProvider({ children }) {
     };
 
     const login = async (email, password) => {
-        const response = await api.post('/api/auth/login', { email, password });
+        const response = await api.post('/auth/login', { email, password });
         const { token: newToken, ...userData } = response.data;
 
         localStorage.setItem('token', newToken);
@@ -41,7 +41,7 @@ export function AuthProvider({ children }) {
     };
 
     const register = async (email, password, displayName, inviteCode) => {
-        const response = await api.post('api/auth/register', {
+        const response = await api.post('/auth/register', {
             email,
             password,
             displayName,
@@ -64,7 +64,7 @@ export function AuthProvider({ children }) {
     };
 
     const updateProfile = async (data) => {
-        const response = await api.put('api/auth/profile', data);
+        const response = await api.put('/auth/profile', data);
         setUser(response.data);
         return response.data;
     };
