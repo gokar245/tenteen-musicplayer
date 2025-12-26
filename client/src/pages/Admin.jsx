@@ -98,42 +98,42 @@ export default function Admin() {
     const fetchPendingUploads = async () => {
         try {
             const res = await api.get('/admin/pending');
-            setPendingSongs(res.data.songs || []);
+            setPendingSongs(Array.isArray(res.data?.songs) ? res.data.songs : []);
         } catch (error) { console.error(error); }
     };
 
     const fetchUsers = async () => {
         try {
             const res = await api.get('/admin/users');
-            setActiveUsers(res.data || []);
+            setActiveUsers(Array.isArray(res.data) ? res.data : []);
         } catch (error) { console.error(error); }
     };
 
     const fetchArtists = async () => {
         try {
             const res = await api.get('/artists');
-            setArtists(res.data.artists || []);
+            setArtists(Array.isArray(res.data?.artists) ? res.data.artists : []);
         } catch (error) { console.error(error); }
     };
 
     const fetchAlbums = async () => {
         try {
             const res = await api.get('/albums');
-            setAlbums(res.data.albums || []);
+            setAlbums(Array.isArray(res.data?.albums) ? res.data.albums : []);
         } catch (error) { console.error(error); }
     };
 
     const fetchPlaylists = async () => {
         try {
             const res = await api.get('/admin/playlists');
-            setPlaylists(res.data || []);
+            setPlaylists(Array.isArray(res.data) ? res.data : []);
         } catch (error) { console.error(error); }
     };
 
     const fetchInvites = async () => {
         try {
             const res = await api.get('/admin/invites');
-            setInvites(res.data || []);
+            setInvites(Array.isArray(res.data) ? res.data : []);
         } catch (error) { console.error(error); }
     };
 
@@ -153,7 +153,7 @@ export default function Admin() {
     const handleApproveSong = async (songId) => {
         try {
             await api.post(`/admin/approve/${songId}`);
-            setPendingSongs(prev => prev.filter(s => s._id !== songId));
+            setPendingSongs(prev => (Array.isArray(prev) ? prev : []).filter(s => s._id !== songId));
             setOpenMenu(null);
         } catch (error) { alert('Failed to approve'); }
     };
@@ -166,7 +166,7 @@ export default function Admin() {
             onConfirm: async () => {
                 try {
                     await api.delete(`/admin/reject/${songId}`);
-                    setPendingSongs(prev => prev.filter(s => s._id !== songId));
+                    setPendingSongs(prev => (Array.isArray(prev) ? prev : []).filter(s => s._id !== songId));
                     setConfirmModal({ show: false });
                 } catch (error) { alert('Failed to reject'); }
             }
@@ -181,7 +181,7 @@ export default function Admin() {
             onConfirm: async () => {
                 try {
                     await api.delete(`/admin/users/${userId}`);
-                    setActiveUsers(prev => prev.filter(u => u._id !== userId));
+                    setActiveUsers(prev => (Array.isArray(prev) ? prev : []).filter(u => u._id !== userId));
                     toast.success('User deleted');
                     setConfirmModal({ show: false });
                 } catch (error) {
@@ -195,7 +195,7 @@ export default function Admin() {
     const updateUserRole = async (userId, role) => {
         try {
             await api.put(`/admin/users/${userId}/role`, { role });
-            setActiveUsers(prev => prev.map(u => u._id === userId ? { ...u, role } : u));
+            setActiveUsers(prev => (Array.isArray(prev) ? prev : []).map(u => u._id === userId ? { ...u, role } : u));
             toast.success(`User role updated to ${role}`);
             setOpenMenu(null);
         } catch (error) {
@@ -207,7 +207,7 @@ export default function Admin() {
     const handleToggleUserStatus = async (userId, currentStatus) => {
         try {
             const { data } = await api.patch(`/admin/users/${userId}/toggle-status`);
-            setActiveUsers(prev => prev.map(u => u._id === userId ? { ...u, isDisabled: data.user.isDisabled } : u));
+            setActiveUsers(prev => (Array.isArray(prev) ? prev : []).map(u => u._id === userId ? { ...u, isDisabled: data.user.isDisabled } : u));
             toast.success(data.message);
             setOpenMenu(null);
         } catch (error) {
@@ -230,7 +230,7 @@ export default function Admin() {
                 toast.promise(deletePromise, {
                     loading: `Deleting artist "${artistName}"...`,
                     success: () => {
-                        setArtists(prev => prev.filter(a => a._id !== artistId));
+                        setArtists(prev => (Array.isArray(prev) ? prev : []).filter(a => a._id !== artistId));
                         return 'Artist deleted successfully';
                     },
                     error: (error) => {
@@ -265,7 +265,7 @@ export default function Admin() {
                 toast.promise(deletePromise, {
                     loading: `Deleting album "${albumTitle}"...`,
                     success: () => {
-                        setAlbums(prev => prev.filter(a => a._id !== albumId));
+                        setAlbums(prev => (Array.isArray(prev) ? prev : []).filter(a => a._id !== albumId));
                         return 'Album deleted successfully';
                     },
                     error: (error) => {
@@ -299,7 +299,7 @@ export default function Admin() {
     const handleDeleteInvite = async (code) => {
         try {
             await api.delete(`/admin/invite/${code}`);
-            setInvites(prev => prev.filter(i => i.code !== code));
+            setInvites(prev => (Array.isArray(prev) ? prev : []).filter(i => i.code !== code));
             toast.success("Invite deleted");
         } catch (error) {
             console.error(error);
@@ -345,7 +345,7 @@ export default function Admin() {
     };
 
     const getOnlineCount = () => {
-        return activeUsers.filter(u => new Date(u.updatedAt) > new Date(Date.now() - 5 * 60 * 1000)).length;
+        return (Array.isArray(activeUsers) ? activeUsers : []).filter(u => new Date(u.updatedAt) > new Date(Date.now() - 5 * 60 * 1000)).length;
     };
 
     if (loading) return <div className="admin-layout" style={{ justifyContent: 'center', alignItems: 'center' }}><div className="loading-spinner"></div></div>;
@@ -411,7 +411,7 @@ export default function Admin() {
                     </tr>
                 </thead>
                 <tbody>
-                    {pendingSongs.map(song => (
+                    {(Array.isArray(pendingSongs) ? pendingSongs : []).map(song => (
                         <tr key={song._id}>
                             <td>
                                 <div className="user-cell">
@@ -454,7 +454,7 @@ export default function Admin() {
                     </tr>
                 </thead>
                 <tbody>
-                    {activeUsers.map((u, index) => (
+                    {(Array.isArray(activeUsers) ? activeUsers : []).map((u, index) => (
                         <tr key={u._id}>
                             <td>
                                 <div className="user-cell">
@@ -531,7 +531,7 @@ export default function Admin() {
 
     const renderGrid = (items, type) => (
         <div className="admin-grid">
-            {items.map(item => (
+            {(Array.isArray(items) ? items : []).map(item => (
                 <div key={item._id} className="admin-card">
                     <div className="card-image">
                         <img src={item.image || item.coverImage || 'https://via.placeholder.com/300?text=No+Image'} alt={item.name || item.title} />
@@ -621,7 +621,7 @@ export default function Admin() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {invites.map(invite => (
+                                    {(Array.isArray(invites) ? invites : []).map(invite => (
                                         <tr key={invite._id}>
                                             <td style={{ fontFamily: 'monospace', fontSize: '1.1em', letterSpacing: '1px' }}>{invite.code}</td>
                                             <td>
@@ -802,7 +802,7 @@ export default function Admin() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {playlists.map(p => (
+                                    {(Array.isArray(playlists) ? playlists : []).map(p => (
                                         <tr key={p._id}>
                                             <td style={{ fontWeight: 600 }}>{p.name}</td>
                                             <td><span className="role-badge user">{p.isPublic ? 'PUBLIC' : 'PRIVATE'}</span></td>
@@ -862,7 +862,7 @@ export default function Admin() {
                                             onChange={e => setEditForm({ ...editForm, artistId: e.target.value })}
                                         >
                                             <option value="">Select Artist</option>
-                                            {artists.map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
+                                            {(Array.isArray(artists) ? artists : []).map(a => <option key={a._id} value={a._id}>{a.name}</option>)}
                                         </select>
                                     </div>
                                     <div className="form-group">

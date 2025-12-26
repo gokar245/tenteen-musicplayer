@@ -32,7 +32,10 @@ export default function Home() {
 
             // Fetch recent playback history
             const historyRes = await songsApi.getHistory(20);
-            const history = historyRes.data || [];
+            const historyData = historyRes.data;
+            const history = Array.isArray(historyData)
+                ? historyData
+                : (historyData?.history || []);
 
             // Extract songs from history
             const songs = history
@@ -51,11 +54,11 @@ export default function Home() {
 
             // Fetch user's playlists
             const playlistsRes = await playlistsApi.getAll();
-            setUserPlaylists(playlistsRes.data || []);
+            setUserPlaylists(Array.isArray(playlistsRes.data) ? playlistsRes.data : []);
 
             // Fetch public playlists
             const publicPlaylistsRes = await playlistsApi.getPublic();
-            setPublicPlaylists(publicPlaylistsRes.data || []);
+            setPublicPlaylists(Array.isArray(publicPlaylistsRes.data) ? publicPlaylistsRes.data : []);
 
             // Fetch all songs sorted by plays (trending)
             const songsRes = await songsApi.getAll({ limit: 20, page: 1 });
