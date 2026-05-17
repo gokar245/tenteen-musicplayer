@@ -1,8 +1,6 @@
 import express from 'express';
 import Song from '../models/Song.js';
-import Album from '../models/Album.js';
 import Artist from '../models/Artist.js';
-import Playlist from '../models/Playlist.js';
 import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -29,30 +27,14 @@ router.get('/', async (req, res) => {
         if (!type || type === 'all' || type === 'songs') {
             const songs = await Song.find({ title: searchRegex })
                 .populate('artist', 'name image')
-                .populate('album', 'name coverImage')
                 .limit(limitNum);
             results.songs = songs;
-        }
-
-        if (!type || type === 'all' || type === 'albums') {
-            const albums = await Album.find({ name: searchRegex })
-                .populate('artist', 'name')
-                .limit(limitNum);
-            results.albums = albums;
         }
 
         if (!type || type === 'all' || type === 'artists') {
             const artists = await Artist.find({ name: searchRegex })
                 .limit(limitNum);
             results.artists = artists;
-        }
-
-        if (!type || type === 'all' || type === 'playlists') {
-            const playlists = await Playlist.find({
-                name: searchRegex,
-                $or: [{ isPublic: true }, { user: req.user._id }]
-            }).limit(limitNum);
-            results.playlists = playlists;
         }
 
         res.json(results);
@@ -82,30 +64,14 @@ router.get('/global', async (req, res) => {
         if (!type || type === 'all' || type === 'songs') {
             const songs = await Song.find({ title: searchRegex })
                 .populate('artist', 'name image')
-                .populate('album', 'name coverImage')
                 .limit(limitNum);
             results.songs = songs;
-        }
-
-        if (!type || type === 'all' || type === 'albums') {
-            const albums = await Album.find({ name: searchRegex })
-                .populate('artist', 'name')
-                .limit(limitNum);
-            results.albums = albums;
         }
 
         if (!type || type === 'all' || type === 'artists') {
             const artists = await Artist.find({ name: searchRegex })
                 .limit(limitNum);
             results.artists = artists;
-        }
-
-        if (!type || type === 'all' || type === 'playlists') {
-            const playlists = await Playlist.find({
-                name: searchRegex,
-                $or: [{ isPublic: true }, { user: req.user._id }]
-            }).limit(limitNum);
-            results.playlists = playlists;
         }
 
         res.json(results);

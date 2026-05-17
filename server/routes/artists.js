@@ -1,8 +1,7 @@
 import express from 'express';
 import Artist from '../models/Artist.js';
-import Album from '../models/Album.js';
 import Song from '../models/Song.js';
-import { protect, adminOnly } from '../middleware/auth.js';
+import { protect } from '../middleware/auth.js';
 
 const router = express.Router();
 
@@ -46,7 +45,7 @@ router.get('/', async (req, res) => {
 
 
 // @route   GET /api/artists/:id
-// @desc    Get artist by ID with albums and songs
+// @desc    Get artist by ID with songs
 // @access  Private
 router.get('/:id', async (req, res) => {
     try {
@@ -56,18 +55,13 @@ router.get('/:id', async (req, res) => {
             return res.status(404).json({ message: 'Artist not found' });
         }
 
-        // Get albums by this artist
-        const albums = await Album.find({ artist: artist._id })
-            .sort({ releaseYear: -1 });
-
         // Get all songs by this artist
         const songs = await Song.find({ artist: artist._id })
-            .populate('album', 'name coverImage')
+            .populate('artist', 'name')
             .sort({ trackNumber: 1 });
 
         res.json({
             artist,
-            albums,
             songs
         });
     } catch (error) {
@@ -175,9 +169,9 @@ router.get('/search/:query', async (req, res) => {
 });
 
 // @route   DELETE /api/artists/:id
-// @desc    Delete artist ONLY if empty (no songs, no albums)
-// @access  Private/Admin
-router.delete('/:id', protect, adminOnly, async (req, res) => {
+// @desc    Delete artist ONLY if empty (no songs)
+// @access  Private
+router.delete('/:id', async (req, res) => {
     try {
         const artist = await Artist.findById(req.params.id);
 
@@ -186,18 +180,11 @@ router.delete('/:id', protect, adminOnly, async (req, res) => {
         }
 
         // Check for songs
-        const songsCount = await Song.countDocuments({ artist: artist._id });
+        const songsCount = await Song.countDocuments({ artist: req.params.id });
+
         if (songsCount > 0) {
             return res.status(400).json({
-                message: `Unable to delete artist. This artist has ${songsCount} songs. Please delete all the songs first.`
-            });
-        }
-
-        // Check for albums
-        const albumsCount = await Album.countDocuments({ artist: artist._id });
-        if (albumsCount > 0) {
-            return res.status(400).json({
-                message: `Unable to delete artist. This artist has ${albumsCount} albums. Please delete all the albums first.`
+                message: 'Cannot delete artist. They have songs associated with them.'
             });
         }
 

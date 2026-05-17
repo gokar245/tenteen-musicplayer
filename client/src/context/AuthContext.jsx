@@ -35,24 +35,23 @@ export function AuthProvider({ children }) {
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(userData);
-        setLoading(false); // Ensure loading is false after login
+        setLoading(false);
 
         return userData;
     };
 
-    const register = async (email, password, displayName, inviteCode) => {
+    const register = async (email, password, displayName) => {
         const response = await api.post('/auth/register', {
             email,
             password,
-            displayName,
-            inviteCode
+            displayName
         });
         const { token: newToken, ...userData } = response.data;
 
         localStorage.setItem('token', newToken);
         setToken(newToken);
         setUser(userData);
-        setLoading(false); // Ensure loading is false after register
+        setLoading(false);
 
         return userData;
     };
@@ -74,7 +73,6 @@ export function AuthProvider({ children }) {
         token,
         loading,
         isAuthenticated: !!user,
-        isAdmin: user?.role === 'admin',
         login,
         register,
         logout,

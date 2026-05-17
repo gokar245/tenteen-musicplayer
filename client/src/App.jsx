@@ -5,18 +5,12 @@ import { Layout } from './components/layout';
 import {
     Login,
     Home,
-    Album,
     Artist,
     Search,
     Upload,
     Library,
     Settings,
-    Admin,
-    EditSong,
-    Playlist,
-    EditPlaylist,
-    EditArtist,
-    EditAlbum
+    EditSong
 } from './pages';
 import { LoadingPage } from './components/common';
 import { Toaster } from 'react-hot-toast';
@@ -51,25 +45,6 @@ function PublicRoute({ children }) {
     return children;
 }
 
-// Admin Route wrapper (requires admin role)
-function AdminRoute({ children }) {
-    const { isAuthenticated, user, loading } = useAuth();
-
-    if (loading) {
-        return <LoadingPage />;
-    }
-
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
-
-    if (user?.role !== 'admin') {
-        return <Navigate to="/" replace />;
-    }
-
-    return children;
-}
-
 function AppRoutes() {
     return (
         <Routes>
@@ -92,42 +67,13 @@ function AppRoutes() {
                 }
             >
                 <Route path="/" element={<Home />} />
-                <Route path="/album/:id" element={<Album />} />
                 <Route path="/artist/:id" element={<Artist />} />
                 <Route path="/search" element={<Search />} />
                 <Route path="/upload" element={<Upload />} />
                 <Route path="/library" element={<Library />} />
-                <Route path="/playlist/:id" element={<Playlist />} />
-                <Route path="/playlist/:id/edit" element={<EditPlaylist />} />
                 <Route path="/settings" element={<Settings />} />
                 <Route path="/edit-song/:id" element={<EditSong />} />
             </Route>
-
-            {/* Admin Route */}
-            <Route
-                path="/admin"
-                element={
-                    <AdminRoute>
-                        <Admin />
-                    </AdminRoute>
-                }
-            />
-            <Route
-                path="/admin/edit-artist/:id"
-                element={
-                    <AdminRoute>
-                        <EditArtist />
-                    </AdminRoute>
-                }
-            />
-            <Route
-                path="/admin/edit-album/:id"
-                element={
-                    <AdminRoute>
-                        <EditAlbum />
-                    </AdminRoute>
-                }
-            />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />

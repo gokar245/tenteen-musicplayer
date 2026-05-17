@@ -16,7 +16,6 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [displayName, setDisplayName] = useState('');
-    const [inviteCode, setInviteCode] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -30,7 +29,7 @@ export default function Login() {
 
         try {
             if (isRegister) {
-                await register(email, password, displayName, inviteCode);
+                await register(email, password, displayName);
             } else {
                 await login(email, password);
             }
@@ -112,21 +111,6 @@ export default function Login() {
                             />
                         </div>
 
-                        {isRegister && (
-                            <div className="form-group">
-                                <label className="form-label">Invite Code</label>
-                                <input
-                                    type="text"
-                                    className="form-input"
-                                    placeholder="XXXXXXXX"
-                                    value={inviteCode}
-                                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                                    required
-                                    style={{ textTransform: 'uppercase' }}
-                                />
-                            </div>
-                        )}
-
                         <Button
                             type="submit"
                             variant="primary"
@@ -148,7 +132,7 @@ export default function Login() {
                             </>
                         ) : (
                             <>
-                                Have an invite code?{' '}
+                                Don't have an account?{' '}
                                 <a href="#" onClick={(e) => { e.preventDefault(); setIsRegister(true); setError(''); }}>
                                     Create account
                                 </a>

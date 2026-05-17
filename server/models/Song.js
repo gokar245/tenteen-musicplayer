@@ -22,11 +22,6 @@ const songSchema = new mongoose.Schema({
         ref: 'Artist',
         default: null
     },
-    album: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Album',
-        default: null
-    },
     coverImage: {
         type: String,
         default: null
@@ -119,10 +114,7 @@ const songSchema = new mongoose.Schema({
 
 // Virtual to get the streaming URL
 songSchema.virtual('streamUrl').get(function () {
-    if (this.cloudinary && this.cloudinary.secure_url) {
-        return this.cloudinary.secure_url;
-    }
-    return this.fileUrl ? `/api/stream/${this._id}` : null;
+    return this.cloudinary?.secure_url || null;
 });
 
 // Virtual to get cover image URL (prefer cloudinary)
@@ -136,7 +128,6 @@ songSchema.virtual('coverUrl').get(function () {
 // Text index for search
 songSchema.index({ title: 'text' });
 songSchema.index({ artist: 1 });
-songSchema.index({ album: 1 });
 songSchema.index({ status: 1 });
 songSchema.index({ uploadedBy: 1 });
 

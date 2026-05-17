@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { searchApi } from '../services/api';
-import { AlbumCard, ArtistCard, SongRow } from '../components/music';
+import { ArtistCard, SongRow } from '../components/music';
 import { LoadingPage } from '../components/common';
 import { useAudio } from '../context/AudioContext';
 
@@ -11,7 +11,7 @@ export default function Search() {
     const { playSong } = useAudio();
     const query = new URLSearchParams(location.search).get('q') || '';
 
-    const [results, setResults] = useState({ songs: [], albums: [], artists: [], playlists: [] });
+    const [results, setResults] = useState({ songs: [], artists: [] });
     const [loading, setLoading] = useState(false);
     const [activeTab, setActiveTab] = useState('songs');
 
@@ -27,9 +27,7 @@ export default function Search() {
             const res = await searchApi.global(query);
             setResults({
                 songs: res.data.songs || [],
-                albums: res.data.albums || [],
-                artists: res.data.artists || [],
-                playlists: res.data.playlists || []
+                artists: res.data.artists || []
             });
         } catch (error) {
             console.error('Search failed:', error);
@@ -38,15 +36,13 @@ export default function Search() {
         }
     };
 
-    if (loading && !results.songs.length && !results.albums.length && !results.artists.length && !results.playlists.length) {
+    if (loading && !results.songs.length && !results.artists.length) {
         return <LoadingPage />;
     }
 
     const tabs = [
         { id: 'songs', label: 'Songs', count: results.songs.length },
-        { id: 'albums', label: 'Albums', count: results.albums.length },
-        { id: 'artists', label: 'Artists', count: results.artists.length },
-        { id: 'playlists', label: 'Playlists', count: results.playlists.length }
+        { id: 'artists', label: 'Artists', count: results.artists.length }
     ];
 
     return (
@@ -91,69 +87,7 @@ export default function Search() {
                     </div>
                 )}
 
-                {/* Albums View */}
-                {activeTab === 'albums' && (
-                    <div className="albums-results">
-                        {results.albums.length > 0 ? (
-                            <div className="search-results-grid">
-                                {results.albums.map(album => (
-                                    <AlbumCard key={album._id} album={album} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="empty-state">
-                                <p className="empty-state-text">No albums found.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
 
-                {/* Playlists View */}
-                {activeTab === 'playlists' && (
-                    <div className="playlists-results">
-                        {results.playlists.length > 0 ? (
-                            <div className="search-results-grid">
-                                {results.playlists.map(playlist => (
-                                    <div
-                                        key={playlist._id}
-                                        className="card album-card"
-                                        style={{ cursor: 'pointer' }}
-                                        onClick={() => navigate(`/playlist/${playlist._id}`)}
-                                    >
-                                        <div className="album-card-artwork">
-                                            {playlist.coverImage ? (
-                                                <img src={playlist.coverImage} alt={playlist.name} />
-                                            ) : (
-                                                <div style={{
-                                                    width: '100%',
-                                                    height: '100%',
-                                                    background: 'linear-gradient(135deg, var(--color-accent), var(--color-surface))',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    color: 'white',
-                                                    fontSize: '32px'
-                                                }}>
-                                                    ♫
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="album-card-info">
-                                            <div className="album-card-title">{playlist.name}</div>
-                                            <div className="album-card-artist" style={{ fontSize: '12px', opacity: 0.7 }}>
-                                                by {playlist.owner?.displayName || 'Unknown'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : (
-                            <div className="empty-state">
-                                <p className="empty-state-text">No playlists found.</p>
-                            </div>
-                        )}
-                    </div>
-                )}
 
                 {/* Artists View */}
                 {activeTab === 'artists' && (

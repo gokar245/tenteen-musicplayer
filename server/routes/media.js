@@ -10,13 +10,13 @@ const router = express.Router();
 // @access  Protected
 router.get('/', protect, async (req, res) => {
     try {
-        const { page = 1, limit = 20, artist, album, language, search } = req.query;
+        const { page = 1, limit = 20, artist, language, search } = req.query;
         const skip = (page - 1) * limit;
 
         const query = { status: 'approved' };
 
         if (artist) query.artist = artist;
-        if (album) query.album = album;
+
         if (language) query.songLanguage = language;
         if (search) {
             query.$or = [
@@ -27,7 +27,7 @@ router.get('/', protect, async (req, res) => {
 
         const songs = await Song.find(query)
             .populate('artist', 'name image')
-            .populate('album', 'title coverImage')
+
             .sort({ createdAt: -1 })
             .skip(skip)
             .limit(parseInt(limit));
@@ -55,8 +55,7 @@ router.get('/', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
     try {
         const song = await Song.findOne({ _id: req.params.id, status: 'approved' })
-            .populate('artist', 'name image')
-            .populate('album', 'title coverImage poster');
+            .populate('artist', 'name image');
 
         if (!song) {
             return res.status(404).json({ message: 'Media not found' });
@@ -81,7 +80,7 @@ router.get('/:id/url', protect, async (req, res) => {
         }
 
         // For Cloudinary storage, return the secure URL
-        if (song.storageType === 'cloudinary' && song.cloudinary?.secure_url) {
+        if (song.cloudinary?.secure_url) {
             // For public content, return direct URL
             // For private content, generate signed URL
             const url = song.cloudinary.secure_url;
@@ -94,16 +93,8 @@ router.get('/:id/url', protect, async (req, res) => {
             });
         }
 
-        // For local storage, return streaming endpoint
-        const token = req.headers.authorization?.split(' ')[1] || req.query.token;
-        const url = `/api/stream/${song._id}?token=${token}`;
+        return res.status(404).json({ message: 'Media streaming URL not available' });
 
-        res.json({
-            url,
-            storageType: 'local',
-            format: song.format,
-            duration: song.duration
-        });
     } catch (error) {
         console.error('Get media URL error:', error);
         res.status(500).json({ message: 'Server error' });

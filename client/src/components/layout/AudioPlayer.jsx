@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useAudio } from '../../context/AudioContext';
 import api from '../../services/api';
-import { TimerModal, PlaylistModal } from '../music';
+import { TimerModal } from '../music';
 
 // Icons
 const PlayIcon = () => (
@@ -88,13 +88,7 @@ const LoadingSpinner = () => (
 );
 
 // New Icons
-const PlaylistAddIcon = () => (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
-        <line x1="12" y1="11" x2="12" y2="17" />
-        <line x1="9" y1="14" x2="15" y2="14" />
-    </svg>
-);
+
 
 const TimerIcon = () => (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,10 +116,7 @@ const DeleteIcon = () => (
 
 export default function AudioPlayer() {
     const [isFullScreen, setIsFullScreen] = useState(false);
-    const [showPlaylistModal, setShowPlaylistModal] = useState(false);
     const [showTimerModal, setShowTimerModal] = useState(false);
-    const [playlists, setPlaylists] = useState([]);
-    const [newPlaylistName, setNewPlaylistName] = useState('');
     const { user } = useAuth();
 
     const {
@@ -166,40 +157,7 @@ export default function AudioPlayer() {
         changeVolume(parseFloat(e.target.value));
     };
 
-    // Playlist Logic
-    const fetchPlaylists = async () => {
-        try {
-            const res = await api.get('/playlists');
-            setPlaylists(res.data);
-        } catch (err) {
-            console.error(err);
-        }
-    };
 
-    const addToPlaylist = async (playlistId) => {
-        try {
-            await api.post(`/playlists/${playlistId}/songs`, { songId: currentSong._id });
-            alert('Added to playlist!');
-            setShowPlaylistModal(false);
-        } catch (err) {
-            alert(err.response?.data?.message || 'Failed to add');
-        }
-    };
-
-    const createAndAdd = async () => {
-        if (!newPlaylistName.trim()) return;
-        try {
-            const res = await api.post('/playlists', { name: newPlaylistName });
-            await addToPlaylist(res.data._id);
-        } catch (err) {
-            alert(err.response?.data?.message || 'Failed to create');
-        }
-    };
-
-    const openPlaylistModal = () => {
-        fetchPlaylists();
-        setShowPlaylistModal(true);
-    };
 
     // Timer Logic
     const handleSetTimer = (minutes) => {
@@ -224,7 +182,7 @@ export default function AudioPlayer() {
             playNext();
             // Or trigger a specialized stop, but playNext is safer to clear the current buffer
 
-            // Use the songs endpoint which allows admins
+            // Use the songs endpoint
             await api.delete(`/songs/${currentSong._id}`);
             alert('Song deleted successfully');
             // Optimistically we moved to next song, but we might want to refresh lists if we were on a page showing it.
@@ -280,7 +238,7 @@ export default function AudioPlayer() {
 
     // Dynamic Background for Full Screen
     const bgStyle = isFullScreen ? {
-        background: `linear-gradient(180deg, ${currentSong?.dominantColor || currentSong?.album?.dominantColor || '#1a1f2e'} 0%, #000000 100%)`
+        background: `linear-gradient(180deg, ${currentSong?.dominantColor || '#1a1f2e'} 0%, #000000 100%)`
     } : {};
 
     return (
@@ -288,8 +246,8 @@ export default function AudioPlayer() {
             {/* Left - Song Info */}
             <div className="player-left">
                 <div className="player-artwork" onClick={toggleFullScreen}>
-                    {(currentSong.coverImage || currentSong.album?.coverImage || currentSong.album?.poster) ? (
-                        <img src={currentSong.coverImage || currentSong.album?.coverImage || currentSong.album?.poster} alt={currentSong.title} />
+                    {currentSong.coverImage ? (
+                        <img src={currentSong.coverImage} alt={currentSong.title} />
                     ) : (
                         <div style={{
                             width: '100%',
@@ -312,17 +270,7 @@ export default function AudioPlayer() {
                 {/* Extra Actions for Full Screen Mobile */}
                 {isFullScreen && (
                     <div className="mobile-actions" onClick={e => e.stopPropagation()} style={{ display: 'flex', gap: '20px', marginTop: '10px' }}>
-                        <button className="player-btn" onClick={(e) => { e.stopPropagation(); openPlaylistModal(); }} title="Add to Playlist">
-                            <PlaylistAddIcon />
-                        </button>
-                        <button className="player-btn" onClick={(e) => { e.stopPropagation(); setShowTimerModal(true); }} title="Sleep Timer" style={{ color: timerActive ? 'var(--color-accent)' : 'inherit' }}>
-                            <TimerIcon />
-                        </button>
-                        {user?.role === 'admin' && (
-                            <button className="player-btn" onClick={(e) => { e.stopPropagation(); handleDeleteSong(); }} title="Delete Song (Admin)" style={{ color: '#ff4444' }}>
-                                <DeleteIcon />
-                            </button>
-                        )}
+
                     </div>
                 )}
             </div>
@@ -330,8 +278,8 @@ export default function AudioPlayer() {
             {/* Center - Controls & Progress */}
             <div className="player-center">
                 <div className="player-controls">
-                    <button className="player-btn shuffle-btn" onClick={shuffleQueue} title="Shuffle">
-                        <ShuffleIcon />
+                    <button className="player-btn" onClick={(e) => { e.stopPropagation(); setShowTimerModal(true); }} title="Sleep Timer" style={{ color: timerActive ? 'var(--color-accent)' : 'inherit' }}>
+                        <TimerIcon />
                     </button>
                     <button className="player-btn" onClick={playPrevious}>
                         <PrevIcon />
@@ -375,15 +323,8 @@ export default function AudioPlayer() {
                         onChange={handleVolumeChange}
                     />
                 </div>
-                {/* Desktop Extra Actions */}
-                <button className="player-btn" onClick={openPlaylistModal} title="Add to Playlist" style={{ marginLeft: '10px' }}>
-                    <PlaylistAddIcon />
-                </button>
-                {user?.role === 'admin' && (
-                    <button className="player-btn" onClick={handleDeleteSong} title="Delete Song (Admin)" style={{ marginLeft: '10px', color: '#ff4444' }}>
-                        <DeleteIcon />
-                    </button>
-                )}
+
+
             </div>
 
             {/* Modals - Using new components */}
@@ -391,11 +332,7 @@ export default function AudioPlayer() {
                 isOpen={showTimerModal}
                 onClose={() => setShowTimerModal(false)}
             />
-            <PlaylistModal
-                isOpen={showPlaylistModal}
-                onClose={() => setShowPlaylistModal(false)}
-                song={currentSong}
-            />
+
         </div>
     );
 }

@@ -9,11 +9,8 @@ import connectDB from './config/db.js';
 import { protect, apiLimiter } from './middleware/index.js';
 import {
     authRoutes,
-    adminRoutes,
     artistRoutes,
-    albumRoutes,
     songRoutes,
-    playlistRoutes,
     streamRoutes,
     uploadRoutes,
     searchRoutes,
@@ -24,9 +21,6 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load env vars
-// dotenv.config(); // Moved to top
-
 // Connect to database
 // Database connection will be handled before server startup
 
@@ -35,7 +29,7 @@ const app = express();
 // Middleware
 app.use(cors({
     origin: process.env.NODE_ENV === 'production'
-        ? process.env.CLIENT_URL
+        ? [process.env.CLIENT_URL, process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:3000'].filter(Boolean)
         : ['http://localhost:5173', 'http://localhost:3000'],
     credentials: true
 }));
@@ -50,11 +44,8 @@ app.use('/uploads/images', express.static(path.join(__dirname, 'uploads/images')
 
 // API Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/admin', adminRoutes);
 app.use('/api/artists', artistRoutes);
-app.use('/api/albums', albumRoutes);
 app.use('/api/songs', songRoutes);
-app.use('/api/playlists', playlistRoutes);
 app.use('/api/stream', streamRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/search', searchRoutes);

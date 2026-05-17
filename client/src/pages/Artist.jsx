@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { artistsApi } from '../services/api';
-import { AlbumCard, TrackList } from '../components/music';
+import { TrackList } from '../components/music';
 import { Button, LoadingPage } from '../components/common';
 import { useAudio } from '../context/AudioContext';
 
@@ -14,7 +14,7 @@ const PlayIcon = () => (
 export default function Artist() {
     const { id } = useParams();
     const [artist, setArtist] = useState(null);
-    const [albums, setAlbums] = useState([]);
+
     const [songs, setSongs] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -27,9 +27,9 @@ export default function Artist() {
     const fetchArtist = async () => {
         try {
             setLoading(true);
-            const response = await artistsApi.getById(id);
+            const response = await artistsApi.getOne(id);
             setArtist(response.data.artist);
-            setAlbums(response.data.albums || []);
+
             setSongs(response.data.songs || []);
         } catch (error) {
             console.error('Failed to fetch artist:', error);
@@ -107,14 +107,12 @@ export default function Artist() {
                 {/* Apps often show "Popular" or "Latest Release". Here just "All Songs" or "Popular Songs" per spec */}
 
                 {/* All Songs */}
-                {songs.length > 0 && (
-                    <section style={{ marginTop: 'var(--space-xl)' }}>
-                        <h2 className="section-title" style={{ marginBottom: 'var(--space-lg)' }}>
-                            Popular Songs
-                        </h2>
-                        <TrackList songs={songs} showAlbum={true} />
-                    </section>
-                )}
+                <section style={{ marginTop: 'var(--space-xl)' }}>
+                    <h2 className="section-title" style={{ marginBottom: 'var(--space-lg)' }}>
+                        Popular Songs
+                    </h2>
+                    <TrackList songs={songs} showAlbum={true} />
+                </section>
             </div>
         </div>
     );

@@ -5,9 +5,8 @@ import { v4 as uuidv4 } from 'uuid';
 import os from 'os';
 import fs from 'fs';
 import Song from '../models/Song.js';
-import Album from '../models/Album.js';
+
 import Artist from '../models/Artist.js';
-import AdminSettings from '../models/AdminSettings.js';
 import { protect } from '../middleware/auth.js';
 import { uploadLimiter } from '../middleware/rateLimit.js';
 import storage from '../services/storage.js';
@@ -42,9 +41,7 @@ const uploadMiddleware = (req, res, next) => {
     try {
         upload.fields([
             { name: 'audio', maxCount: 1 },
-            { name: 'coverImage', maxCount: 1 },
-            { name: 'artistImage', maxCount: 1 },
-            { name: 'albumImage', maxCount: 1 }
+            { name: 'coverImage', maxCount: 1 }
         ])(req, res, (err) => {
             if (err) {
                 console.error('Multer Middleware Error:', err);
@@ -83,7 +80,7 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
             return res.status(400).json({ message: `Unsupported audio format: ${audioExt}` });
         }
 
-        const { artistId, albumId, title, language, tags } = req.body;
+        const { artistId, title, language, tags } = req.body;
 
         // 2. Duplicate Detection - Generate unique hash for all uploads
         let hash;
@@ -104,14 +101,11 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
             return res.status(409).json({ message: 'Duplicate song detected', songId: duplicate._id });
         }
 
-        // 3. Get admin settings to determine status
-        const settings = await AdminSettings.getSettings();
-
-        // 4. Save Audio to Storage (local or Cloudinary)
+        // 3. Save Audio to Cloudinary
         const filename = `${uuidv4()}.${audioExt}`;
         const audioResult = await storage.saveAudio(audioFile, filename);
 
-        // 5. Save Cover Image (if present)
+        // 4. Save Cover Image (if present)
         let coverImagePath = null;
         let coverImageCloudinary = null;
         if (coverImageFile) {
@@ -119,15 +113,11 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
             const imageFilename = `${uuidv4()}.${imageExt}`;
             const imageResult = await storage.saveImage(coverImageFile, imageFilename, 'covers');
 
-            if (imageResult.storageType === 'cloudinary') {
-                coverImageCloudinary = imageResult.cloudinary;
-                coverImagePath = imageResult.cloudinary.secure_url;
-            } else {
-                coverImagePath = imageResult.url;
-            }
+            coverImageCloudinary = imageResult.cloudinary;
+            coverImagePath = imageResult.cloudinary.secure_url;
         }
 
-        // 6. Metadata Parsing
+        // 5. Metadata Parsing
         let duration = 0;
         let bitrate = null;
         try {
@@ -143,29 +133,18 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
             console.warn('Music metadata parsing failed, using default duration:', parseErr.message);
         }
 
-        // 7. Determine status based on settings and user role
-        // Admin uploads are ALWAYS auto-approved
-        // If uploadsEnabled toggle is ON, user uploads are auto-approved
-        // If uploadsEnabled toggle is OFF, user uploads go to pending
-        let status = 'pending';
-        if (req.user.role === 'admin') {
-            // Admin uploads are always approved
-            status = 'approved';
-        } else if (settings.uploadsEnabled) {
-            // Toggle ON = auto-approve regular uploads
-            status = 'approved';
-        }
-        // Toggle OFF = status stays 'pending'
+        // 6. All uploads are auto-approved
+        const status = 'approved';
 
-        // 8. Create Database Record
+        // 7. Create Database Record
         const songData = {
             title: title || audioFile.originalname.replace(/\.[^/.]+$/, ''),
             artist: artistId || null,
-            album: albumId || null,
+
             duration,
-            fileUrl: audioResult.storageType === 'local' ? filename : null,
-            cloudinary: audioResult.storageType === 'cloudinary' ? audioResult.cloudinary : null,
-            storageType: audioResult.storageType,
+            fileUrl: null,
+            cloudinary: audioResult.cloudinary,
+            storageType: 'cloudinary',
             fileSize: audioFile.size,
             format: audioExt,
             uploadedBy: req.user._id,
@@ -183,7 +162,7 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
         const song = await Song.create(songData);
 
         res.status(201).json({
-            message: status === 'approved' ? 'Song uploaded successfully' : 'Song uploaded and pending approval',
+            message: 'Song uploaded successfully',
             song,
             status
         });
@@ -207,7 +186,7 @@ router.post('/audio', protect, uploadMiddleware, async (req, res) => {
             await cleanupFile(req.files['audio']?.[0]);
             await cleanupFile(req.files['coverImage']?.[0]);
             await cleanupFile(req.files['artistImage']?.[0]);
-            await cleanupFile(req.files['albumImage']?.[0]);
+
         }
     }
 });
@@ -228,9 +207,9 @@ router.post('/image', protect, (req, res, next) => {
         const result = await storage.saveImage(req.file, filename, folder);
 
         res.json({
-            imageUrl: result.url || result.cloudinary?.secure_url,
+            imageUrl: result.cloudinary?.secure_url,
             cloudinary: result.cloudinary,
-            storageType: result.storageType
+            storageType: 'cloudinary'
         });
     } catch (error) {
         console.error('Image upload error:', error);
@@ -248,21 +227,5 @@ router.post('/image', protect, (req, res, next) => {
 
 // Quick test endpoint
 router.post('/quick', (req, res) => res.status(200).send('OK'));
-
-// Get upload status/settings (for frontend to know if uploads are enabled)
-router.get('/settings', protect, async (req, res) => {
-    try {
-        const settings = await AdminSettings.getSettings();
-        res.json({
-            uploadsEnabled: settings.uploadsEnabled,
-            autoApprove: settings.autoApproveUploads,
-            maxUploadSizeMB: settings.maxUploadSizeMB,
-            allowedFormats: settings.allowedFormats
-        });
-    } catch (error) {
-        console.error('Get upload settings error:', error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
 
 export default router;

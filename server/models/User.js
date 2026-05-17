@@ -43,42 +43,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: null
     },
-    role: {
-        type: String,
-        enum: ['user', 'admin'],
-        default: 'user'
-    },
-    playbackHistory: [playbackHistorySchema],
-    invitedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        default: null
-    },
-    isTemporary: {
-        type: Boolean,
-        default: false
-    },
-    temporaryValidityDuration: {
-        type: Number, // in milliseconds, carried over from invite
-        default: null
-    },
-    firstLoginAt: {
-        type: Date,
-        default: null
-    },
-    temporaryExpiresAt: {
-        type: Date,
-        default: null
-    },
-    isDisabled: {
-        type: Boolean,
-        default: false
-    }
+    playbackHistory: [playbackHistorySchema]
 }, {
     timestamps: true
 });
-
-// Index for email lookup (Removed duplicate index)
 
 // Hash password before saving
 userSchema.pre('save', async function (next) {

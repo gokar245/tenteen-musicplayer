@@ -15,28 +15,8 @@ export const protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'User not found' });
             }
 
-            // Check temporary user expiry
-            if (req.user.isTemporary) {
-                if (!req.user.temporaryExpiresAt) {
-                    // First use: Start the timer
-                    const duration = req.user.temporaryValidityDuration || 24 * 60 * 60 * 1000;
-                    const expiresAt = new Date(Date.now() + duration);
-
-                    await User.updateOne({ _id: req.user._id }, {
-                        firstLoginAt: new Date(),
-                        temporaryExpiresAt: expiresAt
-                    });
-
-                    req.user.temporaryExpiresAt = expiresAt; // Update local instance
-                } else if (new Date() > req.user.temporaryExpiresAt) {
-                    // Expired: Delete
-                    await req.user.deleteOne();
-                    return res.status(401).json({ message: 'Temporary access expired' });
-                }
-            }
-
             next();
-            return; // Added return to prevent execution of next block
+            return;
         } catch (error) {
             console.error('Auth error:', error.message);
             return res.status(401).json({ message: 'Not authorized, token failed' });
@@ -54,26 +34,6 @@ export const protect = async (req, res, next) => {
                 return res.status(401).json({ message: 'User not found' });
             }
 
-            // Check temporary user expiry
-            if (req.user.isTemporary) {
-                if (!req.user.temporaryExpiresAt) {
-                    // First use: Start the timer
-                    const duration = req.user.temporaryValidityDuration || 24 * 60 * 60 * 1000;
-                    const expiresAt = new Date(Date.now() + duration);
-
-                    await User.updateOne({ _id: req.user._id }, {
-                        firstLoginAt: new Date(),
-                        temporaryExpiresAt: expiresAt
-                    });
-
-                    req.user.temporaryExpiresAt = expiresAt; // Update local instance
-                } else if (new Date() > req.user.temporaryExpiresAt) {
-                    // Expired: Delete
-                    await req.user.deleteOne();
-                    return res.status(401).json({ message: 'Temporary access expired' });
-                }
-            }
-
             next();
             return;
         } catch (error) {
@@ -87,15 +47,6 @@ export const protect = async (req, res, next) => {
     }
 };
 
-// Admin only middleware
-export const adminOnly = (req, res, next) => {
-    if (req.user && req.user.role === 'admin') {
-        next();
-    } else {
-        res.status(403).json({ message: 'Access denied. Admin only.' });
-    }
-};
-
 // Generate JWT token
 export const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
@@ -103,4 +54,4 @@ export const generateToken = (id) => {
     });
 };
 
-export default { protect, adminOnly, generateToken };
+export default { protect, generateToken };

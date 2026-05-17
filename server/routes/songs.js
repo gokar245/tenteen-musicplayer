@@ -13,7 +13,7 @@ router.use(protect);
 // @access  Private
 router.get('/', async (req, res) => {
     try {
-        const { search, artist, album, limit = 20, page = 1 } = req.query;
+        const { search, artist, limit = 20, page = 1 } = req.query;
         const skip = (page - 1) * limit;
 
         let query = {};
@@ -26,13 +26,10 @@ router.get('/', async (req, res) => {
             query.artist = artist;
         }
 
-        if (album) {
-            query.album = album;
-        }
+
 
         const songs = await Song.find(query)
             .populate('artist', 'name image')
-            .populate('album', 'name coverImage')
             .skip(skip)
             .limit(parseInt(limit))
             .sort({ createdAt: -1 });
@@ -60,7 +57,7 @@ router.get('/random', async (req, res) => {
         const rand = Math.floor(Math.random() * count);
         const song = await Song.findOne().skip(rand)
             .populate('artist', 'name image')
-            .populate('album', 'name coverImage');
+
 
         if (!song) {
             return res.status(404).json({ message: 'No songs found' });
@@ -128,7 +125,7 @@ router.get('/history', async (req, res) => {
                 path: 'playbackHistory.song',
                 populate: [
                     { path: 'artist', select: 'name image' },
-                    { path: 'album', select: 'name coverImage' }
+
                 ]
             });
 
@@ -159,7 +156,7 @@ router.get('/history/recent', async (req, res) => {
                 path: 'playbackHistory.song',
                 populate: [
                     { path: 'artist', select: 'name image' },
-                    { path: 'album', select: 'name coverImage' }
+
                 ]
             });
 
@@ -183,7 +180,7 @@ router.get('/search/:query', async (req, res) => {
             title: { $regex: req.params.query, $options: 'i' }
         })
             .populate('artist', 'name')
-            .populate('album', 'name coverImage')
+
             .limit(10);
 
         res.json(songs);
@@ -199,8 +196,7 @@ router.get('/search/:query', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const song = await Song.findById(req.params.id)
-            .populate('artist', 'name image')
-            .populate('album', 'name coverImage dominantColor');
+            .populate('artist', 'name image');
 
         if (!song) {
             return res.status(404).json({ message: 'Song not found' });
@@ -213,9 +209,44 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// @route   PUT /api/songs/:id
+// @desc    Update song details
+// @access  Private (owner only)
+router.put('/:id', async (req, res) => {
+    try {
+        const song = await Song.findById(req.params.id);
+
+        if (!song) {
+            return res.status(404).json({ message: 'Song not found' });
+        }
+
+        // Only allow update by uploader
+        if (song.uploadedBy.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to edit this song' });
+        }
+
+        const { title, songLanguage, artistId, coverImage } = req.body;
+
+        if (title) song.title = title;
+        if (songLanguage) song.songLanguage = songLanguage;
+        if (artistId !== undefined) song.artist = artistId || null;
+        if (coverImage) song.coverImage = coverImage;
+
+        await song.save();
+
+        const updated = await Song.findById(song._id)
+            .populate('artist', 'name image');
+
+        res.json(updated);
+    } catch (error) {
+        console.error('Update song error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // @route   DELETE /api/songs/:id
 // @desc    Delete a song
-// @access  Private (owner or admin)
+// @access  Private (owner only)
 router.delete('/:id', async (req, res) => {
     try {
         const song = await Song.findById(req.params.id);
@@ -224,8 +255,8 @@ router.delete('/:id', async (req, res) => {
             return res.status(404).json({ message: 'Song not found' });
         }
 
-        // Only allow deletion by uploader or admin
-        if (song.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        // Only allow deletion by uploader
+        if (song.uploadedBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Not authorized to delete this song' });
         }
 

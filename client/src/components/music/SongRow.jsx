@@ -41,7 +41,7 @@ export default function SongRow({
     const [showMenu, setShowMenu] = useState(false);
 
     const isCurrentSong = currentSong?._id === song._id;
-    const isAdmin = user?.role === 'admin';
+    const isOwner = user?._id === song.uploadedBy || user?._id === song.uploadedBy?._id;
 
     const handleClick = () => {
         if (isCurrentSong) {
@@ -55,7 +55,7 @@ export default function SongRow({
         e.stopPropagation();
         if (!confirm('Are you sure you want to delete this song?')) return;
         try {
-            await api.delete(`/admin/reject/${song._id}`);
+            await api.delete(`/songs/${song._id}`);
             toast.success('Song deleted successfully');
             window.location.reload();
         } catch (err) {
@@ -91,8 +91,8 @@ export default function SongRow({
             {/* Album Artwork (if showing album) */}
             {showAlbum && (
                 <div className="song-row-artwork">
-                    {song.coverImage || song.album?.poster || song.album?.coverImage ? (
-                        <img src={song.coverImage || song.album?.poster || song.album?.coverImage} alt={song.title} />
+                    {song.coverImage ? (
+                        <img src={song.coverImage} alt={song.title} />
                     ) : (
                         <div style={{
                             width: '100%',
@@ -115,7 +115,6 @@ export default function SongRow({
                 <div className="song-row-title">{song.title}</div>
                 <div className="song-row-artist">
                     {song.artist?.name || 'Unknown Artist'}
-                    {showAlbum && song.album?.name && ` • ${song.album.name}`}
                 </div>
             </div>
 
@@ -129,14 +128,13 @@ export default function SongRow({
                 </div>
             )}
 
-            {/* Duration & Admin Actions */}
+            {/* Duration & Actions */}
             <div className="song-row-duration" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <span>{formatDuration(song.duration)}</span>
 
-                {isAdmin && (
-                    <div className="admin-actions-dropdown" style={{ position: 'relative' }}>
+                {isOwner && (
+                    <div style={{ position: 'relative' }}>
                         <button
-                            className="admin-more-btn"
                             onClick={(e) => { e.stopPropagation(); setShowMenu(!showMenu); }}
                             style={{
                                 background: 'transparent',
@@ -150,7 +148,7 @@ export default function SongRow({
                         </button>
 
                         {showMenu && (
-                            <div className="song-admin-menu" style={{
+                            <div style={{
                                 position: 'absolute',
                                 right: '0',
                                 top: '100%',

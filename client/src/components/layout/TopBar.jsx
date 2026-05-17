@@ -180,57 +180,7 @@ export default function TopBar({ onSearch, placeholder, toggleMobileMenu }) {
                             </div>
                         )}
 
-                        {/* Albums / Movies */}
-                        {results.albums?.length > 0 && (
-                            <div className="search-section">
-                                <h4 style={{ padding: '8px 12px', margin: '8px 0 0', fontSize: '11px', color: '#b3b3b3', fontWeight: 'bold', textTransform: 'uppercase' }}>Albums & Movies</h4>
-                                {results.albums.map(album => (
-                                    <div
-                                        key={album._id}
-                                        onClick={() => { navigate(`/album/${album._id}`); setShowResults(false); }}
-                                        style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderRadius: '4px' }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3e3e3e'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                    >
-                                        <div style={{ width: 32, height: 32, borderRadius: 2, background: '#333', overflow: 'hidden' }}>
-                                            {(album.poster || album.coverImage) && <img src={album.poster || album.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />}
-                                        </div>
-                                        <div>
-                                            <div style={{ color: '#fff', fontSize: '14px' }}>{album.name}</div>
-                                            <div style={{ color: '#b3b3b3', fontSize: '12px' }}>{album.artist?.name}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
-                        {/* Playlists */}
-                        {results.playlists?.length > 0 && (
-                            <div className="search-section">
-                                <h4 style={{ padding: '8px 12px', margin: '8px 0 0', fontSize: '11px', color: '#b3b3b3', fontWeight: 'bold', textTransform: 'uppercase' }}>Playlists</h4>
-                                {results.playlists.map(playlist => (
-                                    <div
-                                        key={playlist._id}
-                                        onClick={() => { navigate(`/playlist/${playlist._id}`); setShowResults(false); }}
-                                        style={{ padding: '8px 12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', borderRadius: '4px' }}
-                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#3e3e3e'}
-                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                                    >
-                                        <div style={{ width: 32, height: 32, borderRadius: 2, background: '#333', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            {(playlist.coverImage) ? (
-                                                <img src={playlist.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                                            ) : (
-                                                <span style={{ fontSize: '10px', color: '#fff' }}>♫</span>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <div style={{ color: '#fff', fontSize: '14px' }}>{playlist.name}</div>
-                                            <div style={{ color: '#b3b3b3', fontSize: '12px' }}>by {playlist.owner?.displayName || 'User'}</div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
 
                         {/* Songs */}
                         {results.songs?.length > 0 && (
@@ -245,8 +195,8 @@ export default function TopBar({ onSearch, placeholder, toggleMobileMenu }) {
                                         onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                                     >
                                         <div style={{ width: 32, height: 32, borderRadius: 2, background: '#333', overflow: 'hidden' }}>
-                                            {(song.coverImage || song.album?.poster || song.album?.coverImage) && (
-                                                <img src={song.coverImage || song.album?.poster || song.album?.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                            {song.coverImage && (
+                                                <img src={song.coverImage} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                             )}
                                         </div>
                                         <div>
@@ -257,7 +207,7 @@ export default function TopBar({ onSearch, placeholder, toggleMobileMenu }) {
                                 ))}
                             </div>
                         )}
-                        {(!results.songs?.length && !results.albums?.length && !results.artists?.length) && (
+                        {(!results.songs?.length && !results.artists?.length) && (
                             <div style={{ padding: '16px', textAlign: 'center', color: '#b3b3b3', fontSize: '14px' }}>
                                 No results found for "{query}"
                             </div>

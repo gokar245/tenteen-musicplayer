@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
-import api, { artistsApi, albumsApi, uploadApi } from '../services/api';
+import api, { artistsApi, uploadApi } from '../services/api';
 import { Button, LoadingSpinner } from '../components/common';
 import '../styles/pages.css';
 
@@ -17,7 +17,7 @@ export default function EditSong() {
     const [title, setTitle] = useState('');
     const [language, setLanguage] = useState('Hindi');
     const [artistId, setArtistId] = useState('');
-    const [albumId, setAlbumId] = useState('');
+
 
     // File State
     const [coverFile, setCoverFile] = useState(null);
@@ -25,7 +25,7 @@ export default function EditSong() {
 
     // Search State
     const [artists, setArtists] = useState([]);
-    const [albums, setAlbums] = useState([]);
+
 
     useEffect(() => {
         fetchSongDetails();
@@ -34,23 +34,13 @@ export default function EditSong() {
 
     const fetchSongDetails = async () => {
         try {
-            // Try fetching via admin route if possible, or public if user owns it?
-            // Using public endpoint for reading, but we might need admin one if pending
-            let res;
-            try {
-                res = await api.get(`/admin/media/${id}`);
-            } catch (e) {
-                // Fallback to public if not admin or fails
-                res = await api.get(`/songs/${id}`);
-            }
-
+            const res = await api.get(`/songs/${id}`);
             const s = res.data;
             setSong(s);
             setTitle(s.title);
             setLanguage(s.songLanguage || 'Hindi');
             setArtistId(s.artist?._id || '');
-            setAlbumId(s.album?._id || '');
-            setCoverPreview(s.coverImage || s.album?.coverImage || s.album?.poster);
+            setCoverPreview(s.coverImage);
         } catch (error) {
             console.error(error);
             toast.error("Failed to load song");
@@ -63,11 +53,9 @@ export default function EditSong() {
     const fetchOptions = async () => {
         try {
             const [aRes, alRes] = await Promise.all([
-                artistsApi.getAll({ limit: 100 }),
-                albumsApi.getAll({ limit: 100 })
+                artistsApi.getAll({ limit: 100 })
             ]);
             setArtists(aRes.data.artists);
-            setAlbums(alRes.data.albums);
         } catch (e) {
             console.error(e);
         }
@@ -96,12 +84,11 @@ export default function EditSong() {
             const payload = {
                 title,
                 songLanguage: language,
-                artistId: artistId || null,
-                albumId: albumId || null
+                artistId: artistId || null
             };
             if (coverUrl) payload.coverImage = coverUrl;
 
-            await api.patch(`/admin/edit/${id}`, payload);
+            await api.put(`/songs/${id}`, payload);
             toast.success("Song updated successfully!");
             navigate(-1);
         } catch (error) {
@@ -152,19 +139,7 @@ export default function EditSong() {
                             </select>
                         </div>
 
-                        <div className="form-group">
-                            <label>Album</label>
-                            <select
-                                className="form-input"
-                                value={albumId}
-                                onChange={e => setAlbumId(e.target.value)}
-                            >
-                                <option value="">Select Album</option>
-                                {albums.map(a => (
-                                    <option key={a._id} value={a._id}>{a.name}</option>
-                                ))}
-                            </select>
-                        </div>
+
 
                         <div className="form-group">
                             <label>Language</label>
@@ -210,7 +185,7 @@ export default function EditSong() {
                         <div className="preview-info">
                             <h4>{title || 'Song Title'}</h4>
                             <p>{artists.find(a => a._id === artistId)?.name || 'Unknown Artist'}</p>
-                            <small>{albums.find(a => a._id === albumId)?.name || 'Single'}</small>
+
                         </div>
                     </div>
                 </div>
